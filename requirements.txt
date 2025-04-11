@@ -1,0 +1,11 @@
+PyQt6
+pyqt6-tools  # Bao gồm Qt Designer và các công cụ khác
+pyqtgraph
+matplotlib
+pandas
+numpy
+pyserial
+bleak  # Thay thế pybluez
+psutil
+scipy
+pyyaml
