@@ -1,9 +1,0 @@
-pipelines:
-  - id: imu_front
-    reader: SerialReader
-    port: COM3
-    decoder: WitMotionDecoder
-  - id: imu_back
-    reader: FileReader
-    path: ./imu_data.csv
-    decoder: CustomDecoder
