@@ -1,0 +1,211 @@
+# File: tests/test_writer.py
+# Purpose: Unit tests for the Writer classes
+# Target Lines: ≤150
+
+import unittest
+import sys
+import os
+import tempfile
+import time
+from unittest.mock import MagicMock, patch
+
+# Add parent directory to path for imports
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from src.io.writers.base_writer import BaseWriter
+
+
+# Simple writer implementation for testing
+class FileWriterMock(BaseWriter):
+    """Simple file writer for testing"""
+    
+    def __init__(self, config):
+        super().__init__(config)
+        self.file = None
+        self.file_path = config.get("file_path", "test.txt")
+    
+    def open(self):
+        """Open the file for writing"""
+        try:
+            self.file = open(self.file_path, "w")
+            self.is_open = True
+            return True
+        except Exception as e:
+            self.set_error(f"Error opening file: {str(e)}")
+            return False
+    
+    def write(self, data):
+        """Write data to the file"""
+        super().write(data)
+        try:
+            if isinstance(data, dict):
+                content = str(data)
+            elif isinstance(data, str):
+                content = data
+            else:
+                content = str(data)
+            
+            bytes_written = self.file.write(content)
+            self.update_stats(bytes_written)
+            return bytes_written
+        except Exception as e:
+            self.set_error(f"Error writing to file: {str(e)}")
+            return 0
+    
+    def close(self):
+        """Close the file"""
+        if self.file:
+            self.file.close()
+            self.is_open = False
+        return True
+
+
+class TestWriter(unittest.TestCase):
+    """Tests for the BaseWriter class and implementations"""
+    
+    def setUp(self):
+        """Set up test fixtures"""
+        # Create temp file for testing
+        self.temp_file = tempfile.NamedTemporaryFile(delete=False)
+        self.temp_file_path = self.temp_file.name
+        self.temp_file.close()
+        
+        # Create writer with config
+        self.config = {
+            "file_path": self.temp_file_path
+        }
+        self.writer = FileWriterMock(self.config)
+    
+    def tearDown(self):
+        """Tear down test fixtures"""
+        # Close writer if open
+        if self.writer.is_open:
+            self.writer.close()
+        
+        # Delete temp file
+        try:
+            os.unlink(self.temp_file_path)
+        except:
+            pass
+    
+    def test_initialization(self):
+        """Test writer initialization"""
+        # Verify writer is initialized properly
+        self.assertEqual(self.writer.config, self.config)
+        self.assertEqual(self.writer.file_path, self.temp_file_path)
+        self.assertFalse(self.writer.is_open)
+        self.assertFalse(self.writer.error_state)
+        self.assertIsNone(self.writer.error_message)
+        self.assertEqual(self.writer.bytes_written, 0)
+        self.assertEqual(self.writer.write_count, 0)
+    
+    def test_open_close(self):
+        """Test open and close methods"""
+        # Open writer
+        result = self.writer.open()
+        
+        # Verify open was successful
+        self.assertTrue(result)
+        self.assertTrue(self.writer.is_open)
+        self.assertIsNotNone(self.writer.file)
+        
+        # Close writer
+        result = self.writer.close()
+        
+        # Verify close was successful
+        self.assertTrue(result)
+        self.assertFalse(self.writer.is_open)
+    
+    def test_write(self):
+        """Test write method"""
+        # Open writer
+        self.writer.open()
+        
+        # Write string data
+        bytes_written = self.writer.write("Test data")
+        
+        # Verify write was successful
+        self.assertEqual(bytes_written, 9)
+        self.assertEqual(self.writer.bytes_written, 9)
+        self.assertEqual(self.writer.write_count, 1)
+        
+        # Write dict data
+        data = {"key": "value", "timestamp": time.time()}
+        bytes_written = self.writer.write(data)
+        
+        # Verify write was successful
+        self.assertTrue(bytes_written > 0)
+        self.assertTrue(self.writer.bytes_written > 9)
+        self.assertEqual(self.writer.write_count, 2)
+        
+        # Close writer
+        self.writer.close()
+        
+        # Verify file contains the data
+        with open(self.temp_file_path, "r") as f:
+            content = f.read()
+            self.assertIn("Test data", content)
+            self.assertIn("key", content)
+            self.assertIn("value", content)
+    
+    def test_write_not_open(self):
+        """Test write when not open"""
+        # Try to write when not open
+        with self.assertRaises(IOError):
+            self.writer.write("Test data")
+    
+    def test_error_handling(self):
+        """Test error handling in writer"""
+        # Set up writer with invalid file path
+        config = {
+            "file_path": "/invalid/path/file.txt"
+        }
+        writer = FileWriterMock(config)
+        
+        # Try to open
+        result = writer.open()
+        
+        # Verify open failed
+        self.assertFalse(result)
+        self.assertTrue(writer.error_state)
+        self.assertIn("Error opening file", writer.error_message)
+        
+        # Clear error
+        writer.clear_error()
+        
+        # Verify error cleared
+        self.assertFalse(writer.error_state)
+        self.assertIsNone(writer.error_message)
+    
+    def test_get_status(self):
+        """Test get_status method"""
+        # Open writer
+        self.writer.open()
+        
+        # Write some data
+        self.writer.write("Test data 1")
+        self.writer.write("Test data 2")
+        
+        # Set error
+        self.writer.set_error("Test error")
+        
+        # Get status
+        status = self.writer.get_status()
+        
+        # Verify status structure
+        self.assertIn("is_open", status)
+        self.assertIn("error_state", status)
+        self.assertIn("error_message", status)
+        self.assertIn("bytes_written", status)
+        self.assertIn("write_count", status)
+        
+        # Verify status values
+        self.assertTrue(status["is_open"])
+        self.assertTrue(status["error_state"])
+        self.assertEqual(status["error_message"], "Test error")
+        self.assertEqual(status["bytes_written"], 20)
+        self.assertEqual(status["write_count"], 2)
+
+
+if __name__ == '__main__':
+    unittest.main()

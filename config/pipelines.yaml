@@ -1,0 +1,112 @@
+# File: config/pipelines.yaml
+
+pipelines:
+  - id: "imu_front"
+    enabled: true
+    reader:
+      type: "SerialReader"
+      config:
+        port: "/dev/ttyUSB0"
+        baudrate: 115200
+    configurator:
+      type: "WitMotionConfigurator"
+      config:
+        acc_range: 16
+        gyro_range: 2000
+        angle_range: 180 # Sửa lỗi đánh máy: angel -> angle
+        port: "/dev/ttyUSB0" # Thông tin port/baudrate có thể trùng lặp với reader, cân nhắc cấu trúc lại
+        baudrate: 115200
+        timeout: 1.0
+        init_sequence:
+          - "FF AA 69"
+          - "FF AA 02 01"
+    decoder:
+      type: "WitMotionDecoder"
+      config:
+        # format: "quaternion" # Xóa dòng này, WitMotionDecoder không dùng đến
+        acc_range: 16.0
+        gyro_range: 2000.0
+        angle_range: 180.0 # Sửa lỗi đánh máy: angel -> angle
+    processor:
+      type: "SimpleProcessor"
+      config:
+        filter_type: "moving_average"
+        window_size: 5
+    analyzer:
+      type: "AnomalyDetector"
+      config:
+        threshold: 3.0
+    visualizer:
+      type: "TimeSeriesVisualizer"
+      config:
+        title: "IMU Front Time Series"
+        line_colors: ["#4285F4", "#0F9D58", "#DB4437"]
+    writer: # --- SỬA ĐỔI BẮT ĐẦU ---
+      type: "FileWriter"
+      config: # Thêm khóa config này
+        output_path: "data/imu_front.csv"
+        format: "csv" # Nên chỉ định rõ format nếu muốn ghi CSV
+        append: true # Nên chỉ định rõ append mode
+        delimiter: "," # Chỉ định delimiter cho CSV
+      # output_path: "data/imu_front.csv" # Xóa dòng này (đã chuyển vào config)
+      # --- SỬA ĐỔI KẾT THÚC ---
+
+  - id: "imu_back"
+    enabled: true
+    reader:
+      type: "FileReader"
+      config:
+        file_path: "data/imu_back.csv"
+        replay_speed: 1.0
+    decoder:
+      type: "CustomDecoder"
+      config:
+        format: "csv"
+        # Nên thêm field_mapping nếu header file CSV không chuẩn
+        # field_mapping:
+        #   timestamp_col: timestamp
+        #   roll_col: roll
+        #   ...
+    processor:
+      type: "SimpleProcessor"
+      config:
+        filter_type: "low_pass"
+        cutoff_freq: 10.0
+    visualizer:
+      type: "FFTVisualizer"
+      config:
+        title: "IMU Back FFT"
+        line_color: "#0F9D58"
+    # Không có writer cho pipeline này
+
+  - id: "imu_side"
+    enabled: false # Pipeline này đang bị vô hiệu hóa
+    reader:
+      type: "BluetoothReader"
+      config:
+        device_id: "00:11:22:33:44:55"
+        service_uuid: "180D"
+    configurator:
+      type: "MPU6050Configurator" # Plugin này chưa được tạo theo kế hoạch ban đầu
+      config:
+        interface: "serial"
+        address: "COM4"
+        baudrate: 9600
+        gyro_range: 2
+        accel_range: 1
+        sample_rate: 9
+    decoder:
+      type: "CustomDecoder"
+      config:
+        format: "binary"
+        # Cần chỉ định binary_format và field_mapping cho dữ liệu binary
+        # binary_format: "<..."
+        # field_mapping: { ... }
+    processor:
+      type: "SimpleProcessor"
+      config:
+        filter_type: "kalman" # Plugin Kalman chưa được tạo
+    visualizer:
+      type: "Orientation3DVisualizer"
+      config:
+        title: "IMU Side 3D Orientation"

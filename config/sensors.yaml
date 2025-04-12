@@ -1,0 +1,33 @@
+# config/sensors.yaml
+sensors:
+  - id: "imu_front"
+    alias: "Front IMU"
+    type: "Serial"
+    connection:
+      port: "COM3"
+      baudrate: 115200
+    metadata:
+      location: "Vehicle Front"
+      model: "WitMotion IMU"
+      frequency: 100
+    enabled: true
+  - id: "imu_back"
+    alias: "Back IMU"
+    type: "File"
+    connection:
+      file_path: "data/imu_back.csv"
+    metadata:
+      location: "Vehicle Rear"
+      model: "Custom IMU"
+      frequency: 50
+    enabled: true
+  - id: "imu_side"
+    alias: "Side IMU"
+    type: "Bluetooth"
+    connection:
+      device: "IMU_Side_Device"
+    metadata:
+      location: "Vehicle Side"
+      model: "Bluetooth IMU"
+      frequency: 75
+    enabled: true

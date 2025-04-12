@@ -1,11 +1,12 @@
-PyQt6
-pyqt6-tools  # Bao gồm Qt Designer và các công cụ khác
-pyqtgraph
-matplotlib
-pandas
-numpy
-pyserial
-bleak  # Thay thế pybluez
-psutil
-scipy
-pyyaml
+PyQt6>=6.0.0
+pyyaml>=6.0
+pyserial>=3.5
+psutil>=5.9.0
+numpy>=1.22.0
+matplotlib>=3.5.0
+pyqtgraph>=0.12.0
+pyopengl>=3.1.0
+pytest>=7.0.0
+pyusb>=1.2.0
+python-can>=4.0.0
+websocket-client>=1.3.0

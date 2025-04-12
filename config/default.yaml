@@ -1,0 +1,33 @@
+# config/default.yaml
+logging:
+  level: "INFO"
+  format: "[%(asctime)s][%(name)s][%(levelname)s] %(message)s"
+  file: "logs/imu_analyzer.log"
+system:
+  max_pipelines: 5
+  monitor_interval: 1.0
+  thread_timeout: 2.0
+  monitor_logging: true
+  monitor_log_interval: 60.0
+data:
+  storage_path: "./data"
+  max_buffer_size: 10000
+network:
+  enabled: false
+  host: "127.0.0.1"
+  port: 8080
+ui:
+  theme: "dark"
+  default_layout: "default_layout.json"
+  refresh_rate: 30
+plugins:
+  auto_reload: true
+  plugin_dirs:
+    - "src/io/readers"
+    - "src/io/writers"
+    - "src/plugins/decoders"
+    - "src/plugins/processors"
+    - "src/plugins/analyzers"
+    - "src/plugins/visualizers"
+    - "src/plugins/exporters"
+    - "src/plugins/configurators"

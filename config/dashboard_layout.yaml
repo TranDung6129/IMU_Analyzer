@@ -1,0 +1,64 @@
+{
+  "widgets": {
+    "0": {
+      "type": "QFrame",
+      "position": [
+        2,
+        0
+      ],
+      "size": [
+        1,
+        1
+      ],
+      "config": {}
+    },
+    "1": {
+      "type": "QFrame",
+      "position": [
+        3,
+        0
+      ],
+      "size": [
+        1,
+        1
+      ],
+      "config": {}
+    },
+    "2": {
+      "type": "QFrame",
+      "position": [
+        1,
+        0
+      ],
+      "size": [
+        1,
+        1
+      ],
+      "config": {}
+    },
+    "3": {
+      "type": "QFrame",
+      "position": [
+        2,
+        0
+      ],
+      "size": [
+        1,
+        1
+      ],
+      "config": {}
+    },
+    "4": {
+      "type": "QFrame",
+      "position": [
+        4,
+        0
+      ],
+      "size": [
+        1,
+        1
+      ],
+      "config": {}
+    }
+  }
+}
